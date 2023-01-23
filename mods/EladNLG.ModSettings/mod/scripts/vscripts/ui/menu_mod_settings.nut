@@ -149,11 +149,6 @@ void function InitModMenu()
 	thread SearchBarUpdate()
 }
 
-void function TestString(ConVarData test)
-{
-	test.displayName = "test"
-}
-
 void function SearchBarUpdate()
 {
 	while (true)

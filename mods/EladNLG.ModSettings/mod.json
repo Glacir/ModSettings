@@ -10,10 +10,6 @@
             "UICallback": {
                 "Before": "AddModSettingsMenu"
             }
-        },
-        {
-            "Path": "ui/menu_mod_settings_menu.nut",
-            "RunOn": "UI"
         }
     ],
     "Dependencies": {
