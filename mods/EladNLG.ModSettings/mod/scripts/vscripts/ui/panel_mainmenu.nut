@@ -14,6 +14,7 @@ struct
 	array<void functionref()> spButtonFuncs
 	var mpButton
 	var fdButton
+	var pmButton
 	void functionref() mpButtonActivateFunc = null
 	var buttonData
 	array<var> menuButtons
@@ -84,6 +85,8 @@ void function InitMainMenuPanel()
 	Hud_AddEventHandler( file.mpButton, UIE_CLICK, OnPlayMPButton_Activate )
 	file.fdButton = AddComboButton( comboStruct, headerIndex, buttonIndex++, "#GAMEMODE_COOP" )
 	Hud_AddEventHandler( file.fdButton, UIE_CLICK, OnPlayFDButton_Activate )
+	file.pmButton = AddComboButton( comboStruct, headerIndex, buttonIndex++, "#PRIVATE_MATCH" )
+	Hud_AddEventHandler( file.pmButton, UIE_CLICK, OnPlayPMButton_Activate )
 
 	headerIndex++
 	buttonIndex = 0
@@ -526,6 +529,13 @@ void function OnPlayMPButton_Activate( var button )
 		// Lobby_SetFDMode( false )
 		thread file.mpButtonActivateFunc()
 	}
+}
+
+void function OnPlayPMButton_Activate( var button )
+{
+	if ( file.mpButtonActivateFunc == null )
+		printt( "file.mpButtonActivateFunc is null" )
+	thread LaunchPM()
 }
 
 void function UICodeCallback_GetOnPartyServer()
