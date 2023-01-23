@@ -761,3 +761,23 @@ void function OnClearButtonPressed( var button )
 
 	OnFiltersChange(0)
 }
+
+#if !PLAYER_HAS_MOD_MANAGER
+struct
+{
+    // a table of capturePanels and menus, each of which contains an array of callbacks
+    table< var, array< void functionref( int deltaX, int deltaY ) > > mouseMovementCaptureCallbacks = {}
+} file
+
+// this function registers a callback (or "handler") function for a MouseMovementCapture menu panel
+// use this for scrollbars, sliders, etc.
+void function AddMouseMovementCaptureHandler( var capturePanelOrMenu, void functionref( int deltaX, int deltaY ) func )
+{
+    // if the capturePanel or menu already has an array in the table, we append to the array
+    // if not, we should create the array, [func] just turns func into an array
+    if ( capturePanelOrMenu in file.mouseMovementCaptureCallbacks )
+        file.mouseMovementCaptureCallbacks[capturePanelOrMenu].append( func )
+    else
+        file.mouseMovementCaptureCallbacks[capturePanelOrMenu] <- [func]
+}
+#endif
