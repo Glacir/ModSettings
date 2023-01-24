@@ -58,8 +58,6 @@ void function InitMainMenuPanel()
 
 	int headerIndex = 0
 	int buttonIndex = 0
-	#if !PLAYER_HAS_ROGUELIKE_UI
-	headerIndex = 0
 	var campaignHeader = AddComboButtonHeader( comboStruct, headerIndex, "#GAMEMODE_SOLO" )
 	file.spButtons.append( AddComboButton( comboStruct, headerIndex, buttonIndex, "" ) )
 	file.spButtonFuncs.append( DoNothing() )
@@ -74,9 +72,6 @@ void function InitMainMenuPanel()
 	Hud_AddEventHandler( file.spButtons[buttonIndex], UIE_CLICK, RunSPButton2 )
 	buttonIndex++
 	UpdateSPButtons()
-	#else
-	file.spButtons = AddRoguelikeMenu( comboStruct )
-	#endif
 
 	headerIndex++
 	buttonIndex = 0
@@ -285,11 +280,6 @@ void function UpdatePlayButton( var button )
 			{
 				message = "#CONTACTING_RESPAWN_SERVERS"
 				file.mpButtonActivateFunc = null
-			}
-			else if ( !isFullyInstalled )
-			{
-				//message = "#INSTALL_IN_PROGRESS"
-				file.mpButtonActivateFunc = LaunchMP
 			}
 			else
 			{
@@ -587,9 +577,6 @@ void function MonitorTrialVersionChange()
 
 void function UpdateSPButtons()
 {
-	#if PLAYER_HAS_ROGUELIKE_UI
-	return // don't modify Roguelike buttons
-	#endif
 	foreach( button in file.spButtons )
 	{
 		ComboButton_SetText( button, "" )
@@ -730,7 +717,9 @@ void function TrackInstallProgress()
 
 bool function IsStryderAuthenticated()
 {
-	return GetConVarInt( "mp_allowed" ) != -1
+	// We don't actually need to wait for Stryder response, because we don't care about it anyway
+	return true
+	//return GetConVarInt( "mp_allowed" ) != -1
 }
 
 bool function IsStryderAllowingMP()
@@ -750,6 +739,9 @@ bool function HasLatestPatch()
 }
 #endif // PS4_PROG
 
+// custom mainmenupromos stuff
+
+// nopping these
 void function UpdatePromoData()
 {
 	file.promoData = GetMainMenuPromos()
