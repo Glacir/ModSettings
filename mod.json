@@ -1,7 +1,7 @@
 {
     "Name": "Mod Settings",
     "Version": "2.0.2",
-    "Description": "pain",
+    "Description": "Customized for vanilla",
     "LoadPriority": 2,
     "Scripts": [
         {

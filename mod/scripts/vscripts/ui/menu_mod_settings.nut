@@ -8,7 +8,7 @@ global function AddModCategory
 global function PureModulo
 
 const int BUTTONS_PER_PAGE = 15
-const string SETTING_ITEM_TEXT = "                        " // this is long enough to be the same size as the textentry field
+const string SETTING_ITEM_TEXT = "                                " // this is long enough to be the same size as the textentry field
 
 enum eEmptySpaceType
 {
