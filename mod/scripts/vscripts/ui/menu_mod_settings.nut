@@ -704,11 +704,11 @@ void function OnModMenuOpened()
 	RegisterButtonPressedCallback( MOUSE_WHEEL_UP , OnScrollUp )
 	RegisterButtonPressedCallback( MOUSE_WHEEL_DOWN , OnScrollDown )
 	RegisterButtonPressedCallback( MOUSE_LEFT , OnClick )
-	// RegisterButtonPressedCallback( KEY_F1, ToggleHideMenu )
+	RegisterButtonPressedCallback( KEY_F1, ToggleHideMenu )
 
-	// SetBlurEnabled( false )
-	// UI_SetPresentationType( ePresentationType.INACTIVE )
-	// Hud_SetVisible( file.menu, true )
+	SetBlurEnabled( false )
+	UI_SetPresentationType( ePresentationType.INACTIVE )
+	Hud_SetVisible( file.menu, true )
 
 	OnFiltersChange(0)
 }
@@ -734,6 +734,13 @@ void function OnFiltersChange( var n )
 	UpdateListSliderHeight()
 }
 
+bool isVisible = true
+void function ToggleHideMenu( var button )
+{
+	Hud_SetVisible( file.menu, !isVisible )
+	isVisible = !isVisible
+}
+
 void function OnModMenuClosed()
 {
 	try
@@ -741,14 +748,14 @@ void function OnModMenuClosed()
 		DeregisterButtonPressedCallback( MOUSE_WHEEL_UP , OnScrollUp )
 		DeregisterButtonPressedCallback( MOUSE_WHEEL_DOWN , OnScrollDown )
 		DeregisterButtonPressedCallback( MOUSE_LEFT , OnClick )
-		// DeregisterButtonPressedCallback( KEY_F1 , ToggleHideMenu )
+		DeregisterButtonPressedCallback( KEY_F1 , ToggleHideMenu )
 	}
 	catch ( ex ) {}
 
 	file.scrollOffset = 0
-	// UI_SetPresentationType( ePresentationType.DEFAULT )
-	// SetBlurEnabled( !IsMultiplayer() )
-	// Hud_SetVisible( file.menu, false )
+	UI_SetPresentationType( ePresentationType.DEFAULT )
+	SetBlurEnabled( !IsMultiplayer() )
+	Hud_SetVisible( file.menu, false )
 }
 
 void function AddModTitle( string modName )
