@@ -724,7 +724,8 @@ bool function IsStryderAuthenticated()
 
 bool function IsStryderAllowingMP()
 {
-	return GetConVarInt( "mp_allowed" ) == 1
+	return true
+	// return GetConVarInt( "mp_allowed" ) == 1
 }
 
 #if PS4_PROG
