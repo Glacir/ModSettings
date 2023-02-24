@@ -382,8 +382,8 @@
 			"image"						"vgui/hud/white"
 			"drawColor"					"255 255 255 128"
 			"pin_to_sibling"			"LabelDetails"
-			"pin_corner_to_sibling"		"TOP_RIGHT"
-			"pin_to_sibling_corner"		"TOP_LEFT"
+			"pin_corner_to_sibling"		"TOP_LEFT"
+			"pin_to_sibling_corner"		"TOP_RIGHT"
 		}
 		"BtnModListUpArrowPanel"
 		{
@@ -396,8 +396,8 @@
 			"visible"					"1"
 			"zpos"						"-1"
 			"pin_to_sibling"			"LabelDetails"
-			"pin_corner_to_sibling"		"TOP_RIGHT"
-			"pin_to_sibling_corner"		"TOP_LEFT"
+			"pin_corner_to_sibling"		"TOP_LEFT"
+			"pin_to_sibling_corner"		"TOP_RIGHT"
 		}
 		"BtnModListDownArrow"
 		{
@@ -411,8 +411,8 @@
 			"image"						"vgui/hud/white"
 			"drawColor"					"255 255 255 128"
 			"pin_to_sibling"			"LabelDetails"
-			"pin_corner_to_sibling"		"TOP_RIGHT"
-			"pin_to_sibling_corner"		"TOP_LEFT"
+			"pin_corner_to_sibling"		"TOP_LEFT"
+			"pin_to_sibling_corner"		"TOP_RIGHT"
 		}
 		"BtnModListDownArrowPanel"
 		{
@@ -425,8 +425,8 @@
 			"visible"					"1"
 			"zpos"						"-1"
 			"pin_to_sibling"			"LabelDetails"
-			"pin_corner_to_sibling"		"TOP_RIGHT"
-			"pin_to_sibling_corner"		"TOP_LEFT"
+			"pin_corner_to_sibling"		"TOP_LEFT"
+			"pin_to_sibling_corner"		"TOP_RIGHT"
 		}
 		"BtnModListSlider"
 		{
@@ -441,8 +441,8 @@
 			"image"						"vgui/hud/white"
 			"drawColor"					"255 255 255 128"
 			"pin_to_sibling"			"LabelDetails"
-			"pin_corner_to_sibling"		"TOP_RIGHT"
-			"pin_to_sibling_corner"		"TOP_LEFT"
+			"pin_corner_to_sibling"		"TOP_LEFT"
+			"pin_to_sibling_corner"		"TOP_RIGHT"
 		}
 		"BtnModListSliderPanel"
 		{
@@ -455,8 +455,8 @@
 			"visible"					"1"
 			"zpos"						"-1"
 			"pin_to_sibling"			"LabelDetails"
-			"pin_corner_to_sibling"		"TOP_RIGHT"
-			"pin_to_sibling_corner"		"TOP_LEFT"
+			"pin_corner_to_sibling"		"TOP_LEFT"
+			"pin_to_sibling_corner"		"TOP_RIGHT"
 		}
 		// sh_menu_models.gnut has a global function which gets called when
 		// left mouse button gets called while hovering and has mouse
@@ -470,8 +470,8 @@
 			"ypos"						"-40"
 			"zpos"						"1"
 			"pin_to_sibling"			"LabelDetails"
-			"pin_corner_to_sibling"		"TOP_RIGHT"
-			"pin_to_sibling_corner"		"TOP_LEFT"
+			"pin_corner_to_sibling"		"TOP_LEFT"
+			"pin_to_sibling_corner"		"TOP_RIGHT"
 		}
 		"ButtonTooltip"
 		{

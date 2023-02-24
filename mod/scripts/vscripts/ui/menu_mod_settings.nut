@@ -174,6 +174,11 @@ void function InitModMenu()
 	AddMouseMovementCaptureHandler( file.menu, UpdateMouseDeltaBuffer )
 	#endif
 
+	// slider button
+	// up / down buttons
+	AddButtonEventHandler( Hud_GetChild( file.menu, "BtnModListUpArrow" ), UIE_CLICK, OnUpArrowSelected )
+	AddButtonEventHandler( Hud_GetChild( file.menu, "BtnModListDownArrow" ), UIE_CLICK, OnDownArrowSelected )
+
 	Hud_AddEventHandler( Hud_GetChild( file.menu, "BtnModsSearch" ), UIE_CHANGE, void function ( var inputField ) : ()
 	{
 		file.filterText = Hud_GetUTF8Text( inputField )
@@ -330,7 +335,7 @@ void function UpdateListSliderHeight()
 
 void function UpdateList()
 {
-	Hud_SetFocused( Hud_GetChild( file.menu, "BtnFiltersClear" ) )
+	// Hud_SetFocused( Hud_GetChild( file.menu, "BtnFiltersClear" ) )
 	file.updatingList = true
 
 	array<ConVarData> filteredList = []
@@ -635,6 +640,7 @@ void function OnScrollDown( var button )
 	{
 		file.scrollOffset = file.filteredList.len() - BUTTONS_PER_PAGE
 	}
+	Hud_SetFocused( Hud_GetChild( file.menu, "BtnModListSlider" ) )
 	UpdateList()
 	UpdateListSliderPosition()
 }
@@ -642,6 +648,30 @@ void function OnScrollDown( var button )
 void function OnScrollUp( var button )
 {
 	file.scrollOffset -= 5
+	if ( file.scrollOffset < 0 )
+	{
+		file.scrollOffset = 0
+	}
+	Hud_SetFocused( Hud_GetChild( file.menu, "BtnModListSlider" ) )
+	UpdateList()
+	UpdateListSliderPosition()
+}
+
+void function OnDownArrowSelected( var button )
+{
+	if ( file.filteredList.len() <= BUTTONS_PER_PAGE ) return
+	file.scrollOffset += 1
+	if ( file.scrollOffset + BUTTONS_PER_PAGE > file.filteredList.len() )
+	{
+		file.scrollOffset = file.filteredList.len() - BUTTONS_PER_PAGE
+	}
+	UpdateList()
+	UpdateListSliderPosition()
+}
+
+void function OnUpArrowSelected( var button )
+{
+	file.scrollOffset -= 1
 	if ( file.scrollOffset < 0 )
 	{
 		file.scrollOffset = 0
