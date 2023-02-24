@@ -46,8 +46,6 @@ struct ConVarData {
 	bool hasCustomMenu = false
 }
 
-#if PLAYER_HAS_MOD_MANAGER
-
 struct {
 	var menu
 	int scrollOffset = 0
@@ -65,30 +63,6 @@ struct {
 	string currentMod = ""
 	string currentCat = ""
 } file
-
-#else
-
-struct {
-	var menu
-	int scrollOffset = 0
-	bool updatingList = false
-
-	array<ConVarData> conVarList
-	// if people use searches - i hate them but it'll do : )
-	array<ConVarData> filteredList
-	string filterText = ""
-	table<int, int> enumRealValues
-	table<string, bool> setFuncs
-	array<var> modPanels
-	array<var> resetModButtons
-	array<MS_Slider> sliders
-	string currentMod = ""
-	string currentCat = ""
-	// a table of capturePanels and menus, each of which contains an array of callbacks
-	table< var, array< void functionref( int deltaX, int deltaY ) > > mouseMovementCaptureCallbacks = {}
-} file
-
-#endif
 
 struct {
 	int deltaX = 0
@@ -196,7 +170,9 @@ void function InitModMenu()
 	// Hud_AddEventHandler( Hud_GetChild( file.menu, "BtnModsSearch" ), UIE_LOSE_FOCUS, OnFilterTextPanelChanged )
 	Hud_AddEventHandler( Hud_GetChild( file.menu, "BtnFiltersClear" ), UIE_CLICK, OnClearButtonPressed )
 	// mouse delta
+	#if PLAYER_HAS_MOD_MANAGER
 	AddMouseMovementCaptureHandler( file.menu, UpdateMouseDeltaBuffer )
+	#endif
 
 	Hud_AddEventHandler( Hud_GetChild( file.menu, "BtnModsSearch" ), UIE_CHANGE, void function ( var inputField ) : ()
 	{
@@ -1094,19 +1070,3 @@ string function SanitizeDisplayName( string displayName )
 	print( result )
 	return result
 }
-
-
-#if !PLAYER_HAS_MOD_MANAGER
-
-// this function registers a callback (or "handler") function for a MouseMovementCapture menu panel
-// use this for scrollbars, sliders, etc.
-void function AddMouseMovementCaptureHandler( var capturePanelOrMenu, void functionref( int deltaX, int deltaY ) func )
-{
-	// if the capturePanel or menu already has an array in the table, we append to the array
-	// if not, we should create the array, [func] just turns func into an array
-	if ( capturePanelOrMenu in file.mouseMovementCaptureCallbacks )
-		file.mouseMovementCaptureCallbacks[capturePanelOrMenu].append( func )
-	else
-		file.mouseMovementCaptureCallbacks[capturePanelOrMenu] <- [func]
-}
-#endif
