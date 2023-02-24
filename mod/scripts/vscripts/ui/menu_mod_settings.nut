@@ -650,6 +650,18 @@ void function OnScrollUp( var button )
 	UpdateListSliderPosition()
 }
 
+void function ValidateScrollOffset()
+{
+	if ( file.scrollOffset + BUTTONS_PER_PAGE > file.filteredList.len() )
+	{
+		file.scrollOffset = file.filteredList.len() - BUTTONS_PER_PAGE
+	}
+	if ( file.scrollOffset < 0 )
+	{
+		file.scrollOffset = 0
+	}
+}
+
 void function UpdateListSliderPosition()
 {
 	var sliderButton = Hud_GetChild( file.menu , "BtnModListSlider" )
@@ -674,8 +686,8 @@ void function UpdateListSliderPosition()
 
 void function OnModMenuOpened()
 {
-	file.scrollOffset = 0
-	file.filterText = ""
+	// file.scrollOffset = 0
+	// file.filterText = ""
 
 	RegisterButtonPressedCallback( MOUSE_WHEEL_UP , OnScrollUp )
 	RegisterButtonPressedCallback( MOUSE_WHEEL_DOWN , OnScrollDown )
@@ -686,7 +698,11 @@ void function OnModMenuOpened()
 	UI_SetPresentationType( ePresentationType.INACTIVE )
 	Hud_SetVisible( file.menu, true )
 
-	OnFiltersChange(0)
+	// OnFiltersChange(0)
+	UpdateList()
+	ValidateScrollOffset()
+	UpdateListSliderHeight()
+	UpdateListSliderPosition()
 }
 
 void function OnClick( var button )
@@ -728,7 +744,7 @@ void function OnModMenuClosed()
 	}
 	catch ( ex ) {}
 
-	file.scrollOffset = 0
+	// file.scrollOffset = 0
 	UI_SetPresentationType( ePresentationType.DEFAULT )
 	SetBlurEnabled( !IsMultiplayer() )
 	Hud_SetVisible( file.menu, false )
