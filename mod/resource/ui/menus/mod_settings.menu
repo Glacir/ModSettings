@@ -64,6 +64,29 @@
 			"labelText"			""
 			"ypos"				"12"
 		}
+		"NoResultLabel"
+		{
+			"ControlName"				"Label"
+			"xpos"					"0"
+			ypos					"0"
+			wide					"1200"
+			tall					"675"
+			//auto_tall_tocontents	1
+			visible					"1"
+			enabled					"1"
+			//auto_wide_tocontents	1
+			labelText				"#NO_RESULT"
+			textAlignment			"center"
+			//auto_wide_tocontents	"1"
+			//auto_tall_tocontents	"1"
+			//fgcolor_override 		"255 255 255 255"
+			//bgcolor_override 		"0 0 0 200"
+			font					Default_41
+
+			pin_to_sibling			ButtonRowAnchor
+			pin_to_sibling_corner	TOP_LEFT
+			pin_corner_to_sibling	TOP_LEFT
+		}
 		// pain //
 		"BtnMod1"
 		{
@@ -378,7 +401,7 @@
 			"wide"						"40"
 			"tall"						"40"
 			"xpos"						"2"
-			"ypos"						"2"
+			"ypos"						"0"
 			"image"						"vgui/hud/white"
 			"drawColor"					"255 255 255 128"
 			"pin_to_sibling"			"LabelDetails"
@@ -391,7 +414,7 @@
 			"wide"						"40"
 			"tall"						"40"
 			"xpos"						"2"
-			"ypos"						"2"
+			"ypos"						"0"
 			"rui"						"ui/knowledgebase_panel.rpak"
 			"visible"					"1"
 			"zpos"						"-1"
@@ -406,7 +429,7 @@
 			// labelText "V"
 			"wide"						"40"
 			"tall"						"40"
-			"xpos"						"0"
+			"xpos"						"2"
 			"ypos"						"-655"
 			"image"						"vgui/hud/white"
 			"drawColor"					"255 255 255 128"

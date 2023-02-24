@@ -3,6 +3,7 @@ global function AddModSettingsMenu
 global function AddConVarSetting
 global function AddConVarSettingEnum
 global function AddConVarSettingSlider
+global function AddModSettingsButton
 global function AddModTitle
 global function AddModCategory
 global function PureModulo
@@ -50,6 +51,7 @@ struct {
 	var menu
 	int scrollOffset = 0
 	bool updatingList = false
+	bool isOpen
 
 	array<ConVarData> conVarList
 	// if people use searches - i hate them but it'll do : )
@@ -143,7 +145,6 @@ void function InitModMenu()
 
 		Hud_AddEventHandler( child, UIE_CLICK, ResetConVar )
 		file.resetModButtons.append(child)
-		//Hud_AddEventHandler( Hud_GetChild( panel, "ResetModImage" ), UIE_CLICK, ResetConVar )
 
 		// text field nav
 		child = Hud_GetChild( panel, "TextEntrySetting" )
@@ -182,7 +183,7 @@ void function InitModMenu()
 	Hud_AddEventHandler( Hud_GetChild( file.menu, "BtnModsSearch" ), UIE_CHANGE, void function ( var inputField ) : ()
 	{
 		file.filterText = Hud_GetUTF8Text( inputField )
-		OnFiltersChange(0)
+		OnFiltersChange()
 	} )
 }
 
@@ -202,7 +203,6 @@ float function PureModulo( int a, int b )
 
 void function ResetConVar( var button )
 {
-	print("ok")
 	ConVarData conVar = file.filteredList[ int ( Hud_GetScriptID( Hud_GetParent( button ) ) ) + file.scrollOffset ]
 
 	if ( conVar.isCategoryName )
@@ -232,7 +232,7 @@ void functionref() function ResetAllConVarsForModEventHandler( string catName )
 		for ( int i = 0; i < file.conVarList.len(); i++ )
 		{
 			ConVarData c = file.conVarList[i]
-			if ( c.catName != catName || c.isCategoryName || c.isEmptySpace )
+			if ( c.catName != catName || c.isCategoryName || c.isEmptySpace || c.isCustomButton )
 				continue
 			SetConVarToDefault( c.conVar )
 
@@ -241,7 +241,11 @@ void functionref() function ResetAllConVarsForModEventHandler( string catName )
 				continue
 
 			if ( min( BUTTONS_PER_PAGE, max( 0, index - file.scrollOffset ) ) == index - file.scrollOffset )
+			{
 				Hud_SetText( Hud_GetChild( file.modPanels[ i - file.scrollOffset ], "TextEntrySetting" ), c.isEnumSetting ? c.values[ GetConVarInt( c.conVar ) ] : GetConVarString( c.conVar ) )
+				if( c.sliderEnabled )
+					MS_Slider_SetValue( file.sliders[ index - file.scrollOffset ], GetConVarFloat( c.conVar ) )
+			}
 		}
 	}
 }
@@ -253,7 +257,11 @@ void functionref() function ResetConVarEventHandler( int modIndex )
 		ConVarData c = file.filteredList[ modIndex ]
 		SetConVarToDefault( c.conVar )
 		if ( min( BUTTONS_PER_PAGE, max( 0, modIndex - file.scrollOffset ) ) == modIndex - file.scrollOffset )
+		{
 			Hud_SetText( Hud_GetChild( file.modPanels[ modIndex - file.scrollOffset ], "TextEntrySetting" ), c.isEnumSetting ? c.values[ GetConVarInt( c.conVar ) ] : GetConVarString( c.conVar ) )
+			if( c.sliderEnabled )
+				MS_Slider_SetValue( file.sliders[ modIndex - file.scrollOffset ], GetConVarFloat( c.conVar ) )
+		}
 	}
 }
 
@@ -295,10 +303,8 @@ void function SliderBarUpdate()
 
 	float jump = minYPos - ( useableSpace / ( float( file.filteredList.len() ) ) )
 
-	// got local from official respaw scripts, without untyped throws an error
-
-	local pos =	Hud_GetPos( sliderButton )[1]
-	local newPos = pos - mouseDeltaBuffer.deltaY
+	int pos = expect int( expect array( Hud_GetPos( sliderButton ) )[1] )
+	float newPos = float( pos - mouseDeltaBuffer.deltaY )
 	FlushMouseDeltaBuffer()
 
 	if ( newPos < maxYPos ) newPos = maxYPos
@@ -335,7 +341,7 @@ void function UpdateListSliderHeight()
 
 void function UpdateList()
 {
-	// Hud_SetFocused( Hud_GetChild( file.menu, "BtnFiltersClear" ) )
+	Hud_SetFocused( Hud_GetChild( file.menu, "BtnModsSearch" ) )
 	file.updatingList = true
 
 	array<ConVarData> filteredList = []
@@ -436,6 +442,21 @@ void function UpdateList()
 			SetModMenuNameText( file.modPanels[i] )
 	}
 	file.updatingList = false
+
+	if ( file.conVarList.len() <= 0 )
+	{
+		Hud_SetVisible( Hud_GetChild( file.menu, "NoResultLabel" ), true )
+		Hud_SetText( Hud_GetChild( file.menu, "NoResultLabel" ), "#NO_MODS" )
+	}
+	else if ( file.filteredList.len() <= 0 )
+	{
+		Hud_SetVisible( Hud_GetChild( file.menu, "NoResultLabel" ), true )
+		Hud_SetText( Hud_GetChild( file.menu, "NoResultLabel" ), "#NO_RESULTS" )
+	}
+	else
+	{
+		Hud_Hide( Hud_GetChild( file.menu, "NoResultLabel" ) )
+	}
 }
 
 array<ConVarData> function GetModConVarDatas( array<ConVarData> arr, int index )
@@ -447,7 +468,7 @@ array<ConVarData> function GetModConVarDatas( array<ConVarData> arr, int index )
 
 array<ConVarData> function GetCatConVarDatas( int index )
 {
-	if ( index == 0 )
+	if ( file.conVarList[ index - 1 ].spaceType != eEmptySpaceType.None )
 		return [ file.conVarList[ index ] ]
 	return [ file.conVarList[ index - 1 ], file.conVarList[ index ] ]
 }
@@ -461,12 +482,8 @@ array<ConVarData> function GetAllVarsInCategory( array<ConVarData> arr, string c
 		if ( c.catName == catName )
 		{
 			vars.append( arr[i] )
-			// printt( file.conVarList[i].conVar + " is in mod " + file.conVarList[i].modName )
 		}
 	}
-	/*ConVarData empty
-	empty.isEmptySpace = true
-	vars.append( empty )*/
 	return vars
 }
 
@@ -479,12 +496,8 @@ array<ConVarData> function GetAllVarsInMod( array<ConVarData> arr, string modNam
 		if ( c.modName == modName )
 		{
 			vars.append( arr[i] )
-			// printt( file.conVarList[i].conVar + " is in mod " + file.conVarList[i].modName )
 		}
 	}
-	/*ConVarData empty
-	empty.isEmptySpace = true
-	vars.append( empty )*/
 	return vars
 }
 
@@ -562,13 +575,13 @@ void function SetModMenuNameText( var button )
 		Hud_SetVisible( enumButton, false )
 		Hud_SetVisible( resetButton, false )
 		Hud_SetVisible( modTitle, false )
+		Hud_SetVisible( resetVGUI, false )
 		Hud_SetVisible( customMenuButton, true )
 		Hud_SetText( customMenuButton, conVar.displayName )
 	}
 	else if ( conVar.isModName )
 	{
 		Hud_SetText( modTitle, conVar.modName )
-		// Hud_SetSize( resetButton, 0, int(40 * scaleY) )
 		Hud_SetPos( label, 0, 0 )
 		Hud_SetVisible( label, false )
 		Hud_SetVisible( textField, false )
@@ -581,12 +594,8 @@ void function SetModMenuNameText( var button )
 	else if ( conVar.isCategoryName )
 	{
 		Hud_SetText( label, conVar.catName )
-		// Hud_SetText( resetButton, "#MOD_SETTINGS_RESET_ALL" )
-		// Hud_SetSize( resetButton, int( 120 * scaleX ), int( 40 * scaleY ) )
 		Hud_SetPos( label, 0, 0 )
 		Hud_SetSize( label, int( scaleX * ( 1180 - 420 - 85 ) ), int( scaleY * 40 ) )
-		// Hud_SetSize( customMenuButton, int( 85 * scaleX ), int( 40 * scaleY ) )
-		// Hud_SetVisible( customMenuButton, conVar.hasCustomMenu )
 		Hud_SetVisible( label, true )
 		Hud_SetVisible( textField, false )
 		Hud_SetVisible( enumButton, false )
@@ -602,11 +611,9 @@ void function SetModMenuNameText( var button )
 		else Hud_SetText( textField, conVar.isEnumSetting ? conVar.values[ GetConVarInt( conVar.conVar ) ] : GetConVarString( conVar.conVar ) )
 		Hud_SetPos( label, int(scaleX * 25), 0 )
 		Hud_SetText( resetButton, "" )
-		// Hud_SetSize( resetButton, int(scaleX * 90), int(scaleY * 40) )
 		if (conVar.sliderEnabled)
 			Hud_SetSize( label, int(scaleX * (375 + 85)), int(scaleY * 40) )
 		else Hud_SetSize( label, int(scaleX * (375 + 405)), int(scaleY * 40) )
-		//Hud_SetSize( customMenuButton, 0, 40 )
 		if ( conVar.type == "float" )
 			Hud_SetText( textField, string( GetConVarFloat( conVar.conVar ) ) )
 		else Hud_SetText( textField, conVar.isEnumSetting ? conVar.values[ GetConVarInt( conVar.conVar ) ] : GetConVarString( conVar.conVar ) )
@@ -616,10 +623,8 @@ void function SetModMenuNameText( var button )
 		if ( conVar.sliderEnabled )
 			Hud_SetSize( label, int( scaleX * ( 375 + 85 ) ), int( scaleY * 40 ) )
 		else Hud_SetSize( label, int( scaleX * ( 375 + 405 ) ), int( scaleY * 40 ) )
-		// Hud_SetSize( customMenuButton, 0, 40 )
 		Hud_SetVisible( label, true )
 		Hud_SetVisible( textField, true )
-		// Hud_SetVisible( enumButton, true )
 		Hud_SetVisible( resetButton, true )
 		Hud_SetVisible( resetVGUI, true )
 	}
@@ -705,7 +710,6 @@ void function UpdateListSliderPosition()
 
 	float jump = minYPos - ( useableSpace / ( mods - float( BUTTONS_PER_PAGE ) ) * file.scrollOffset )
 
-	// jump = jump * ( GetScreenSize()[1] / 1080.0 )
 
 	if ( jump > minYPos ) jump = minYPos
 
@@ -716,23 +720,27 @@ void function UpdateListSliderPosition()
 
 void function OnModMenuOpened()
 {
-	// file.scrollOffset = 0
-	// file.filterText = ""
+	if( !file.isOpen )
+	{
+		// file.scrollOffset = 0
+		// file.filterText = ""
 
-	RegisterButtonPressedCallback( MOUSE_WHEEL_UP , OnScrollUp )
-	RegisterButtonPressedCallback( MOUSE_WHEEL_DOWN , OnScrollDown )
-	RegisterButtonPressedCallback( MOUSE_LEFT , OnClick )
-	RegisterButtonPressedCallback( KEY_F1, ToggleHideMenu )
+		RegisterButtonPressedCallback( MOUSE_WHEEL_UP , OnScrollUp )
+		RegisterButtonPressedCallback( MOUSE_WHEEL_DOWN , OnScrollDown )
+		RegisterButtonPressedCallback( MOUSE_LEFT , OnClick )
+		RegisterButtonPressedCallback( KEY_F1, ToggleHideMenu )
 
-	SetBlurEnabled( false )
-	UI_SetPresentationType( ePresentationType.INACTIVE )
-	Hud_SetVisible( file.menu, true )
+		SetBlurEnabled( false )
+		UI_SetPresentationType( ePresentationType.INACTIVE )
+		Hud_SetVisible( file.menu, true )
 
-	// OnFiltersChange(0)
-	UpdateList()
-	ValidateScrollOffset()
-	UpdateListSliderHeight()
-	UpdateListSliderPosition()
+		// OnFiltersChange(0)
+		UpdateList()
+		ValidateScrollOffset()
+		UpdateListSliderHeight()
+		UpdateListSliderPosition()
+		file.isOpen = true
+	}
 }
 
 void function OnClick( var button )
@@ -743,17 +751,14 @@ void function OnClick( var button )
 	}
 }
 
-void function OnFiltersChange( var n )
+void function OnFiltersChange()
 {
 	file.scrollOffset = 0
-
-	// HideAllButtons()
-
-	// RefreshModsArray()
 
 	UpdateList()
 
 	UpdateListSliderHeight()
+	UpdateListSliderPosition()
 }
 
 bool isVisible = true
@@ -780,7 +785,7 @@ void function OnModMenuClosed()
 	Hud_SetVisible( file.menu, false )
 }
 
-void function AddModTitle( string modName )
+void function AddModTitle( string modName, int stackPos = 2 )
 {
 	file.currentMod = modName
 	if ( file.conVarList.len() > 0 )
@@ -810,21 +815,19 @@ void function AddModTitle( string modName )
 	botBar.modName = modName
 	botBar.spaceType = eEmptySpaceType.BottomBar
 	file.conVarList.extend( [ topBar, modData, botBar ] )
-	file.setFuncs[ expect string( getstackinfos(2)[ "func" ] ) ] <- false
+	file.setFuncs[ expect string( getstackinfos( stackPos )[ "func" ] ) ] <- false
 }
 
-void function AddModCategory( string catName )
+void function AddModCategory( string catName, int stackPos = 2 )
 {
-	if ( !( getstackinfos(2)[ "func" ] in file.setFuncs ) )
-		throw getstackinfos(2)[ "src" ] + " #" + getstackinfos(2)[ "line" ] + "\nCannot add a category before a mod title!"
-	if ( file.currentCat != "" )
-	{
-		ConVarData space
-		space.isEmptySpace = true
-		space.modName = file.currentMod
-		space.catName = catName
-		file.conVarList.append( space )
-	}
+	if ( !( getstackinfos( stackPos )[ "func" ] in file.setFuncs ) )
+		throw getstackinfos( stackPos )[ "src" ] + " #" + getstackinfos( stackPos )[ "line" ] + "\nCannot add a category before a mod title!"
+
+	ConVarData space
+	space.isEmptySpace = true
+	space.modName = file.currentMod
+	space.catName = catName
+	file.conVarList.append( space )
 
 	ConVarData catData
 
@@ -836,13 +839,13 @@ void function AddModCategory( string catName )
 	file.conVarList.append( catData )
 
 	file.currentCat = catName
-	file.setFuncs[ expect string( getstackinfos(2)[ "func" ] ) ] = true
+	file.setFuncs[ expect string( getstackinfos( stackPos )[ "func" ] ) ] = true
 }
 
-void function AddModSettingsButton( string buttonLabel, void functionref() onPress )
+void function AddModSettingsButton( string buttonLabel, void functionref() onPress, int stackPos = 2 )
 {
-	if ( !( getstackinfos(2)[ "func" ] in file.setFuncs ) || !file.setFuncs[ expect string( getstackinfos(2)[ "func" ] ) ] )
-		throw getstackinfos(2)[ "src" ] + " #" + getstackinfos(2)[ "line" ] + "\nCannot add a button before a category and mod title!"
+	if ( !( getstackinfos( stackPos )[ "func" ] in file.setFuncs ) || !file.setFuncs[ expect string( getstackinfos( stackPos )[ "func" ] ) ] )
+		throw getstackinfos( stackPos )[ "src" ] + " #" + getstackinfos( stackPos )[ "line" ] + "\nCannot add a button before a category and mod title!"
 
 	ConVarData data
 
@@ -855,10 +858,10 @@ void function AddModSettingsButton( string buttonLabel, void functionref() onPre
 	file.conVarList.append( data )
 }
 
-void function AddConVarSetting( string conVar, string displayName, string type = "" )
+void function AddConVarSetting( string conVar, string displayName, string type = "", int stackPos = 2 )
 {
-	if ( !( getstackinfos(2)[ "func" ] in file.setFuncs ) || !file.setFuncs[ expect string( getstackinfos(2)[ "func" ] ) ] )
-		throw getstackinfos(2)[ "src" ] + " #" + getstackinfos(2)[ "line" ] + "\nCannot add a setting before a category and mod title!"
+	if ( !( getstackinfos( stackPos )[ "func" ] in file.setFuncs ) || !file.setFuncs[ expect string( getstackinfos( stackPos )[ "func" ] ) ] )
+		throw getstackinfos( stackPos )[ "src" ] + " #" + getstackinfos( stackPos )[ "line" ] + "\nCannot add a setting before a category and mod title!"
 	ConVarData data
 
 	data.catName = file.currentCat
@@ -870,10 +873,10 @@ void function AddConVarSetting( string conVar, string displayName, string type =
 	file.conVarList.append( data )
 }
 
-void function AddConVarSettingSlider( string conVar, string displayName, float min = 0.0, float max = 1.0, float stepSize = 0.1, bool forceClamp = false )
+void function AddConVarSettingSlider( string conVar, string displayName, float min = 0.0, float max = 1.0, float stepSize = 0.1, bool forceClamp = false, int stackPos = 2 )
 {
-	if ( !( getstackinfos(2)[ "func" ] in file.setFuncs ) || !file.setFuncs[ expect string( getstackinfos(2)[ "func" ] ) ] )
-		throw getstackinfos(2)[ "src" ] + " #" + getstackinfos(2)[ "line" ] + "\nCannot add a setting before a category and mod title!"
+	if ( !( getstackinfos( stackPos )[ "func" ] in file.setFuncs ) || !file.setFuncs[ expect string( getstackinfos( stackPos )[ "func" ] ) ] )
+		throw getstackinfos( stackPos )[ "src" ] + " #" + getstackinfos( stackPos )[ "line" ] + "\nCannot add a setting before a category and mod title!"
 	ConVarData data
 
 	data.catName = file.currentCat
@@ -890,10 +893,10 @@ void function AddConVarSettingSlider( string conVar, string displayName, float m
 	file.conVarList.append( data )
 }
 
-void function AddConVarSettingEnum( string conVar, string displayName, array<string> values )
+void function AddConVarSettingEnum( string conVar, string displayName, array<string> values, int stackPos = 2 )
 {
-	if ( !( getstackinfos(2)[ "func" ] in file.setFuncs ) || !file.setFuncs[ expect string( getstackinfos(2)[ "func" ] ) ] )
-		throw getstackinfos(2)[ "src" ] + " #" + getstackinfos(2)[ "line" ] + "\nCannot add a setting before a category and mod title!"
+	if ( !( getstackinfos( stackPos )[ "func" ] in file.setFuncs ) || !file.setFuncs[ expect string( getstackinfos( stackPos )[ "func" ] ) ] )
+		throw getstackinfos( stackPos )[ "src" ] + " #" + getstackinfos( stackPos )[ "line" ] + "\nCannot add a setting before a category and mod title!"
 	ConVarData data
 
 	data.catName = file.currentCat
@@ -1086,7 +1089,7 @@ void function OnClearButtonPressed( var button )
 	file.filterText = ""
 	Hud_SetText( Hud_GetChild( file.menu, "BtnModsSearch" ), "" )
 
-	OnFiltersChange(0)
+	OnFiltersChange()
 }
 
 string function SanitizeDisplayName( string displayName )
@@ -1113,6 +1116,5 @@ string function SanitizeDisplayName( string displayName )
 			result += p
 		else result += p.slice( i, p.len() )
 	}
-	print( result )
 	return result
 }

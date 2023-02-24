@@ -1,7 +1,7 @@
 {
     "Name": "Mod Settings",
-    "Version": "2.0.2",
-    "Description": "Customized for vanilla by FlameRaptor",
+    "Version": "2.1.0",
+    "Description": "Modified for vanilla Titanfall 2 by FlameRaptor. Originally created by EladNLG. ",
     "LoadPriority": 2,
     "Scripts": [
         {
