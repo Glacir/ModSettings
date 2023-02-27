@@ -764,25 +764,32 @@ void function OnFiltersChange()
 bool isVisible = true
 void function ToggleHideMenu( var button )
 {
+	if (!file.isOpen)
+		return
+
 	Hud_SetVisible( file.menu, !isVisible )
 	isVisible = !isVisible
 }
 
 void function OnModMenuClosed()
 {
-	try
+	if (file.isOpen)
 	{
-		DeregisterButtonPressedCallback( MOUSE_WHEEL_UP , OnScrollUp )
-		DeregisterButtonPressedCallback( MOUSE_WHEEL_DOWN , OnScrollDown )
-		DeregisterButtonPressedCallback( MOUSE_LEFT , OnClick )
-		DeregisterButtonPressedCallback( KEY_F1 , ToggleHideMenu )
-	}
-	catch ( ex ) {}
+		try
+		{
+			DeregisterButtonPressedCallback( MOUSE_WHEEL_UP , OnScrollUp )
+			DeregisterButtonPressedCallback( MOUSE_WHEEL_DOWN , OnScrollDown )
+			DeregisterButtonPressedCallback( MOUSE_LEFT , OnClick )
+			DeregisterButtonPressedCallback( KEY_F1 , ToggleHideMenu )
+		}
+		catch ( ex ) {}
 
-	// file.scrollOffset = 0
-	UI_SetPresentationType( ePresentationType.DEFAULT )
-	SetBlurEnabled( !IsMultiplayer() )
-	Hud_SetVisible( file.menu, false )
+		// file.scrollOffset = 0
+		UI_SetPresentationType( ePresentationType.DEFAULT )
+		SetBlurEnabled( !IsMultiplayer() )
+		Hud_SetVisible( file.menu, false )
+		file.isOpen = false
+	}
 }
 
 void function AddModTitle( string modName, int stackPos = 2 )
