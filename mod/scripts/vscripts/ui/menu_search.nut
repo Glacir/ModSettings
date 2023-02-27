@@ -189,9 +189,9 @@ void function OnSearchMenu_Open()
 			ComboButton_SetNew( file.factionButton, anyNewFactions )
 		}
 
-		bool faqIsNew = !GetConVarBool( "menu_faq_viewed" ) || HaveNewPatchNotes() || HaveNewCommunityNotes()
-		RuiSetBool( Hud_GetRui( file.settingsHeader ), "isNew", faqIsNew )
-		ComboButton_SetNew( file.faqButton, faqIsNew )
+		// bool faqIsNew = !GetConVarBool( "menu_faq_viewed" ) || HaveNewPatchNotes() || HaveNewCommunityNotes()
+		// RuiSetBool( Hud_GetRui( file.settingsHeader ), "isNew", faqIsNew )
+		// ComboButton_SetNew( file.faqButton, faqIsNew )
 
 		Search_UpdateInboxButtons()
 	}
@@ -331,8 +331,10 @@ void function CreateButtons( var menu )
 	#endif
 	//var dataCenterButton = AddComboButton( comboStruct, headerIndex, buttonIndex++, "#DATA_CENTER" )
 	//Hud_AddEventHandler( dataCenterButton, UIE_CLICK, OpenDataCenterDialog )
-	file.faqButton = AddComboButton( comboStruct, headerIndex, buttonIndex++, "#KNB_MENU_HEADER" )
-	Hud_AddEventHandler( file.faqButton, UIE_CLICK, AdvanceMenuEventHandler( GetMenu( "KnowledgeBaseMenu" ) ) )
+	//file.faqButton = AddComboButton( comboStruct, headerIndex, buttonIndex++, "#KNB_MENU_HEADER" )
+	//Hud_AddEventHandler( file.faqButton, UIE_CLICK, AdvanceMenuEventHandler( GetMenu( "KnowledgeBaseMenu" ) ) )
+	var modSettingsButton = AddComboButton( comboStruct, headerIndex, buttonIndex++, "#MOD_SETTINGS" )
+	Hud_AddEventHandler( modSettingsButton, UIE_CLICK, AdvanceMenuEventHandler( GetMenu( "ModSettings" ) ) )
 
 	comboStruct.navUpButtonDisabled = true
 	comboStruct.navDownButton = file.chatroomMenu_chatroomWidget
