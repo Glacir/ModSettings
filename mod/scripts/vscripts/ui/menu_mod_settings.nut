@@ -1,5 +1,14 @@
 untyped
 global function AddModSettingsMenu
+global function ModSettings_AddSetting
+global function ModSettings_AddEnumSetting
+global function ModSettings_AddSliderSetting
+global function ModSettings_AddButton
+global function ModSettings_AddModTitle
+global function ModSettings_AddModCategory
+global function PureModulo
+
+// Legacy functions for backwards compatability. These will be removed eventually
 global function AddConVarSetting
 global function AddConVarSettingEnum
 global function AddConVarSettingSlider
@@ -793,7 +802,7 @@ void function OnModMenuClosed()
 	}
 }
 
-void function AddModTitle( string modName, int stackPos = 2 )
+void function ModSettings_AddModTitle( string modName, int stackPos = 2 )
 {
 	file.currentMod = modName
 	if ( file.conVarList.len() > 0 )
@@ -826,7 +835,12 @@ void function AddModTitle( string modName, int stackPos = 2 )
 	file.setFuncs[ expect string( getstackinfos( stackPos )[ "func" ] ) ] <- false
 }
 
-void function AddModCategory( string catName, int stackPos = 2 )
+void function AddModTitle( string modName, int stackPos = 2 )
+{
+	ModSettings_AddModTitle( modName, stackPos + 1 )
+}
+
+void function ModSettings_AddModCategory( string catName, int stackPos = 2 )
 {
 	if ( !( getstackinfos( stackPos )[ "func" ] in file.setFuncs ) )
 		throw getstackinfos( stackPos )[ "src" ] + " #" + getstackinfos( stackPos )[ "line" ] + "\nCannot add a category before a mod title!"
@@ -850,7 +864,12 @@ void function AddModCategory( string catName, int stackPos = 2 )
 	file.setFuncs[ expect string( getstackinfos( stackPos )[ "func" ] ) ] = true
 }
 
-void function AddModSettingsButton( string buttonLabel, void functionref() onPress, int stackPos = 2 )
+void function AddModCategory( string catName, int stackPos = 2 )
+{
+	ModSettings_AddModCategory( catName, stackPos + 1 )
+}
+
+void function ModSettings_AddButton( string buttonLabel, void functionref() onPress, int stackPos = 2 )
 {
 	if ( !( getstackinfos( stackPos )[ "func" ] in file.setFuncs ) || !file.setFuncs[ expect string( getstackinfos( stackPos )[ "func" ] ) ] )
 		throw getstackinfos( stackPos )[ "src" ] + " #" + getstackinfos( stackPos )[ "line" ] + "\nCannot add a button before a category and mod title!"
@@ -866,7 +885,12 @@ void function AddModSettingsButton( string buttonLabel, void functionref() onPre
 	file.conVarList.append( data )
 }
 
-void function AddConVarSetting( string conVar, string displayName, string type = "", int stackPos = 2 )
+void function AddModSettingsButton( string buttonLabel, void functionref() onPress, int stackPos = 2 )
+{
+	ModSettings_AddButton( buttonLabel, onPress, stackPos + 1 )
+}
+
+void function ModSettings_AddSetting( string conVar, string displayName, string type = "", int stackPos = 2 )
 {
 	if ( !( getstackinfos( stackPos )[ "func" ] in file.setFuncs ) || !file.setFuncs[ expect string( getstackinfos( stackPos )[ "func" ] ) ] )
 		throw getstackinfos( stackPos )[ "src" ] + " #" + getstackinfos( stackPos )[ "line" ] + "\nCannot add a setting before a category and mod title!"
@@ -881,7 +905,12 @@ void function AddConVarSetting( string conVar, string displayName, string type =
 	file.conVarList.append( data )
 }
 
-void function AddConVarSettingSlider( string conVar, string displayName, float min = 0.0, float max = 1.0, float stepSize = 0.1, bool forceClamp = false, int stackPos = 2 )
+void function AddConVarSetting( string conVar, string displayName, string type = "", int stackPos = 2 )
+{
+	ModSettings_AddSetting( conVar, displayName, type, stackPos + 1 )
+}
+
+void function ModSettings_AddSliderSetting( string conVar, string displayName, float min = 0.0, float max = 1.0, float stepSize = 0.1, bool forceClamp = false, int stackPos = 2 )
 {
 	if ( !( getstackinfos( stackPos )[ "func" ] in file.setFuncs ) || !file.setFuncs[ expect string( getstackinfos( stackPos )[ "func" ] ) ] )
 		throw getstackinfos( stackPos )[ "src" ] + " #" + getstackinfos( stackPos )[ "line" ] + "\nCannot add a setting before a category and mod title!"
@@ -901,7 +930,12 @@ void function AddConVarSettingSlider( string conVar, string displayName, float m
 	file.conVarList.append( data )
 }
 
-void function AddConVarSettingEnum( string conVar, string displayName, array<string> values, int stackPos = 2 )
+void function AddConVarSettingSlider( string conVar, string displayName, float min = 0.0, float max = 1.0, float stepSize = 0.1, bool forceClamp = false, int stackPos = 2 )
+{
+	ModSettings_AddSliderSetting( conVar, displayName, min, max, stepSize, forceClamp, stackPos + 1 )
+}
+
+void function ModSettings_AddEnumSetting( string conVar, string displayName, array<string> values, int stackPos = 2 )
 {
 	if ( !( getstackinfos( stackPos )[ "func" ] in file.setFuncs ) || !file.setFuncs[ expect string( getstackinfos( stackPos )[ "func" ] ) ] )
 		throw getstackinfos( stackPos )[ "src" ] + " #" + getstackinfos( stackPos )[ "line" ] + "\nCannot add a setting before a category and mod title!"
@@ -920,6 +954,11 @@ void function AddConVarSettingEnum( string conVar, string displayName, array<str
 	data.stepSize = 1
 
 	file.conVarList.append( data )
+}
+
+void function AddConVarSettingEnum( string conVar, string displayName, array<string> values, int stackPos = 2 )
+{
+	ModSettings_AddEnumSetting( conVar, displayName, values, stackPos + 1 )
 }
 
 void function OnSliderChange( var button )
@@ -972,6 +1011,7 @@ void function SendTextPanelChanges( var textPanel )
 					ThrowInvalidValue( "This setting is an integer, and only accepts whole numbers." )
 					Hud_SetText( textPanel, GetConVarString( c.conVar ) )
 				}
+				break
 			case "bool":
 				if ( newSetting != "0" && newSetting != "1" )
 				{
